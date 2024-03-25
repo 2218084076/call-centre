@@ -52,6 +52,7 @@ async function submitFile() {
     await axios.post(callCentreUrl + 'analyse/', formData);
     await allMessages()
     file.value = ''
+    textarea.value = ''
   } catch (error) {
     console.error("Failed to fetch prompts:", error)
   }
@@ -65,6 +66,7 @@ async function submitMessage() {
     formData.append('temperature', '1')
     await axios.post(callCentreUrl + 'chatCompletion/', formData);
     await allMessages()
+    textarea.value = ''
   } catch (error) {
     console.error("Failed to fetch prompts:", error)
   }
@@ -192,8 +194,22 @@ onMounted(() => {
       </el-row>
       <el-row class="row-bg" justify="start" v-for="(message,index) in messages" :key="index"
               style="border:1px solid #ccc;border-radius: 0">
-        <el-col :span="2" style="text-align: start;padding: 0 0 0 1%" v-html="markdownToHtml(message.role)"/>
-        <el-col :span="22" style="text-align: start" v-html="markdownToHtml(message.content)"/>
+        <el-col :span="3"
+                style="text-align: start;padding: 1%;display: flex; ">
+          <div style="display: flex;text-align: start">
+            <el-icon
+                v-if="message.role === 'user'"
+            >
+              <Avatar style="color: #303133;"/>
+            </el-icon>
+            <el-icon v-if="message.role === 'assistant'"
+                     style="display: inline-flex; justify-content: center; align-items: center; border: 2px solid rgba(243,243,243,0.11); border-radius: 50%;">
+              <Connection style="color: #529b2e"/>
+            </el-icon>
+          </div>
+          <em> {{ message.role }} </em>
+        </el-col>
+        <el-col :span="21" style="text-align: start" v-html="markdownToHtml(message.content)"/>
       </el-row>
     </el-col>
   </el-row>
