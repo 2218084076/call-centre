@@ -1,0 +1,23 @@
+# OpenAI api key
+API_KEY: ''
+MODEL: "gpt-4-1106-preview"
+
+GROQ_API_KEY: ''
+GROQ_MODEL: ''
+# log config
+LOG_PATH: '/tmp/atom'
+LOGLEVEL: INFO
+
+
+BASE_PATH: "/tmp/test"
+
+# TTS config
+TTS_OUTPUT_PATH: '/tmp/atom/tts_Output'
+UPLOAD_AUDIO_PATH: '/tmp/atom/audio_upload'
+
+
+AZURE_OPENAI_ENDPOINT: "https://foo.azure.com/"
+API_VERSION: "foo"
+
+STT_URL: "http://localhost:5000/recognition"
+
