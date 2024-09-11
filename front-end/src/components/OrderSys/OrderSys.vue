@@ -1,51 +1,67 @@
 <template>
-  <el-row class="row-bg" style="margin: 1% 0 0 0">
-    <el-col class="title-p">AI Demo for CSL Sales Hotline</el-col>
-  </el-row>
-  <el-row class="row-bg" justify="center" style="align-items: center;">
+  <br/>
+
+  <el-row class="row-bg" style="align-items: center" justify="space-evenly">
     <el-col
-        :span="12"
-        style="padding: 1% 0 1% 0;display: grid;justify-content: start;width: 100%;min-width: max-content">
+        :span="8"
+        style="
+          padding: 1% 0 1% 0;
+          display: grid;
+          justify-content: start;
+          min-width: max-content;
+          margin: 0 0 0 2%;
+          "
+    >
       <div style="
-                box-sizing:border-box;
-                border-radius: 10px;
-                padding: 4%;
-                min-width: 240px;
-          ">
-        <div class="title">Duration(录音时长): {{
-            recorder && recorder.duration.toFixed(4)
-          }}
-        </div>
-        <div style="justify-content: start;display: flex">
-          <el-button
-              :type="isPressing ? 'info' : 'primary'"
-              @touchstart.prevent="handleStart"
-              @touchend.prevent="uploadRecord"
-              @mousedown.prevent="handleStart"
-              @mouseup.prevent="uploadRecord"
-              :disabled="isSubmitting"
-              round
-              size="large"
-              :loading="isSubmitting"
-              style="width: 100%"
-          >
-            <el-icon>
-              <Microphone/>
-            </el-icon>
-            Hold to speak
-          </el-button>
-        </div>
+        justify-content: start;
+        display: flex;
+    ">
+        <el-button
+            :type="isPressing?'info':'primary'"
+            @touchstart.prevent="handleStart"
+            @touchend.prevent="uploadRecord"
+            @mousedown.prevent="handleStart"
+            @mouseup.prevent="uploadRecord"
+            :disabled="isSubmitting"
+            size="large"
+            :loading="isSubmitting"
+        >
+          <el-icon style="">
+            <Microphone/>
+          </el-icon>
+          Hold to speak<span v-if="recorder.duration"> {{ recorder && recorder.duration.toFixed(4) }}</span>
+        </el-button>
       </div>
     </el-col>
-    <el-col :span="10">
-      <el-button style="width: 60%" size="large" @click="clearMessage" type="info" round>Clear</el-button>
+    <el-col :span="6">
+      <el-select
+          v-model="value"
+          empty-values="en"
+          value-on-clear="en"
+          clearable
+          placeholder="en"
+          size="large"
+      >
+        <el-option
+            v-for="item in options"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+        />
+      </el-select>
+    </el-col>
+    <el-col :span="6">
+      <el-button
+          style="width: 60%"
+          size="large"
+          @click="clearMessage"
+      >Clear
+      </el-button>
     </el-col>
   </el-row>
 
-  <el-row class="row-bg" style="align-content: start">
-    <el-col :span="5"/>
-  </el-row>
-  <p>Request time {{ messages.response_time }}</p>
+
+  <p v-if="messages.response_time">Request time {{ messages.response_time }}</p>
   <div style="display: grid">
     <div
         v-for="(message,index) in all_messages"
@@ -68,10 +84,17 @@
             font-size: small;"
           :class="{ 'gray-background': message.role === 'assistant' , 'user-background': message.role === 'user'}"
       >
+        <div
+            style="
+                margin: 0 0 1% 1%;
+                justify-content: start;
+              "
+            v-html="markdownToHtml(message.content)"
+        ></div>
         <audio
             ref="audioElement"
             :id="index"
-            v-if="message.role === 'assistant' && message.audio"
+            v-if="message.audio"
             :src="`${message.audio}?${Date.now()}`"
             controls
             style="
@@ -82,16 +105,10 @@
             "
             :autoplay="all_messages.length===1 && this.all_messages[0].role === 'assistant'"
         ></audio>
-        <div
-            style="
-                margin: 0 0 1% 1%;
-                justify-content: start;
-              "
-            v-html="markdownToHtml(message.content)"
-        ></div>
       </div>
     </div>
   </div>
+
   <el-backtop :right="100" :bottom="100"/>
 </template>
 
@@ -173,12 +190,12 @@ import axios from 'axios'
 import * as marked from 'marked'
 import {
   CircleCloseFilled,
+  Delete,
   Microphone,
   Promotion,
   UploadFilled,
   VideoPause,
-  VideoPlay,
-  Delete
+  VideoPlay
 } from '@element-plus/icons-vue'
 import Recorder from 'js-audio-recorder'
 import {getCurrentInstance} from 'vue'
@@ -189,7 +206,7 @@ export default {
     const instance = getCurrentInstance();
     return {
       newMessage: '',
-      baseUrl: instance?.appContext.config.globalProperties.baseUrl,
+      baseUrl: instance?.appContext.config.globalProperties.orderSysUrl,
       messages: {
         "message": "",
         "data": {
@@ -212,12 +229,14 @@ export default {
       recordingStatus: false,
       playTime: 0,
       playingStatus: false,
-      audioSrc: "",
       prompts: {},
       initAssistantStatus: false,
       temperature: 1,
       all_messages: [],
-      isPressing: false
+      isPressing: false,
+      value: '',
+      options: [{value: 'en', label: 'en'}, {value: 'zh', label: 'zh'}
+      ]
     }
   },
   created() {
@@ -255,7 +274,7 @@ export default {
       const newbolb = new Blob([blob], {type: 'audio/wav'})
       const fileOfBlob = new File([newbolb], new Date().getTime() + '.wav')
       formData.append('audio', fileOfBlob)
-      formData.append('temperature', this.temperature)
+      formData.append('language', this.value)
       const url = this.baseUrl + 'ask/';
       try {
         const response = await axios.post(url, formData);
@@ -263,9 +282,9 @@ export default {
         this.isSubmitting = false
         this.playingStatus = false
         this.recordingStatus = false
-        this.audioSrc = `https://testapp.tfg.ltd/api/v2/output/${this.messages.audio}`
         this.audioKey = new Date().getTime()
         this.fetchHistory()
+        this.recorder.duration = 0
         setTimeout(() => {
           const audioElement = document.getElementById('1');
           if (audioElement) {
@@ -282,7 +301,6 @@ export default {
         this.isSubmitting = false
         this.playingStatus = false
         this.recordingStatus = false
-        this.audioSrc = `https://testapp.tfg.ltd/api/v2/output/speech.mp3?timestamp=${new Date().getTime()}`
         this.audioKey = new Date().getTime()
         this.recorder = null
       }
@@ -314,10 +332,11 @@ export default {
     },
     fetchHistory() {
       try {
-        const response = axios.get(this.baseUrl + `messages/?timestamp=${new Date().getTime()}`,
+        this.recorder.duration = 0
+        axios.get(this.baseUrl + `messages/?timestamp=${new Date().getTime()}`,
         ).then(res => {
           this.all_messages = this.reversePairs(res.data).filter(message => message.role !== "system")
-        })
+        });
       } catch (error) {
         this.isLoading = false
         console.error('Error fetching chat history:', error)
@@ -336,12 +355,11 @@ export default {
         }
       });
       const reversedPairs = pairs.reverse();
-      const flattened = reversedPairs.flat();
-      return flattened;
+      return reversedPairs.flat();
     },
     async clearMessage() {
       this.messages.response_time = 0
-      this.recorder = null
+      this.recorder.duration = 0
       await axios.get(this.baseUrl + `initMessages/?timestamp=${new Date().getTime()}`)
       await this.fetchHistory()
     },
@@ -353,7 +371,6 @@ export default {
   },
   mounted() {
     this.fetchHistory()
-    this.audioSrc = `https://testapp.tfg.ltd/api/v2/output/${this.messages.audio}`
     this.$nextTick(() => {
       setTimeout(() => {
         const audioElement = document.getElementById('1');

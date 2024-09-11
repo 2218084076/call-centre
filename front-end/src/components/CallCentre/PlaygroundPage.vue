@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, Ref, getCurrentInstance, onMounted, watch} from 'vue';
-import axios from 'axios';
+import axios from "axios";
 import {UploadFilled} from '@element-plus/icons-vue';
 import * as marked from 'marked';
 
@@ -14,12 +14,19 @@ interface Message {
 const textarea: Ref<string> = ref(' ')
 const prompts: Ref<string> = ref('')
 const instance = getCurrentInstance()
+const audioFiles = [
+  {
+    value: 'https://testapp.tfg.ltd/api/output/callcentre/ONEPIP02AshokaXpress.mp3',
+    label: 'English telephone recording'
+  },
+]
 const callCentreUrl = instance?.appContext.config.globalProperties.callCentreUrl
 let messages: Ref<Message[]> = ref([])
 let file = ref('')
 let fileName = ref('')
 let isLoading = ref(false)
 let isSubmitting = ref(false)
+let audioFile = ref('')
 
 async function updatePrompts() {
   try {
@@ -47,14 +54,14 @@ async function submitFile() {
   try {
     let formData = new FormData()
     formData.append('content', textarea.value)
-    formData.append('temperature', '1')
-    formData.append('audio', file.value)
+    formData.append('audio', audioFile.value)
     await axios.post(callCentreUrl + 'analyse/', formData);
     await allMessages()
-    file.value = ''
     textarea.value = ''
+    await allMessages()
   } catch (error) {
     console.error("Failed to fetch prompts:", error)
+    await allMessages()
   }
 }
 
@@ -75,8 +82,8 @@ async function submitMessage() {
 
 async function submit() {
   isSubmitting.value = true
-  console.log(file.value)
-  if (file.value) {
+  console.log(audioFile.value)
+  if (audioFile.value) {
     await submitFile();
   } else {
     await submitMessage();
@@ -140,47 +147,44 @@ onMounted(() => {
 <template>
   <el-row class="row-bg" justify="space-evenly">
     <el-col :span="10">
-      <div class="itemTitle">SYSTEM</div>
+      <h3>System</h3>
       <el-input
           v-model="prompts"
-          style="width:100%;"
-          :rows="2"
           type="textarea"
           placeholder="Please input"
-          :autosize="{minRows:55}"
           @blur="updatePrompts"
+          rows="50"
       />
     </el-col>
     <el-col :span="13">
-      <div class="itemTitle">USER</div>
+      <h3>User</h3>
       <el-row class="row-bg">
-        <el-col :span="5">
-          <el-upload
-              drag
-              action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
-              @change="handleFileUpload"
-              multiple
+        <el-col :span="10">
+          <el-select
+              v-model="audioFile"
+              :empty-values="[null, undefined]"
+              :value-on-clear="null"
+              clearable
+              placeholder="Select"
+              size="large"
           >
-            <el-icon class="el-icon--upload">
-              <upload-filled/>
-            </el-icon>
-            <br/>
-            <em>click to select audio file</em>
-          </el-upload>
+            <el-option
+                v-for="item in audioFiles"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+            />
+          </el-select>
+          <audio
+              ref="audioElement"
+              v-if="audioFile"
+              :src="audioFile"
+              controls
+              preload="auto"
+          ></audio>
         </el-col>
-        <el-col :span="19">
-          <el-input
-              v-model="textarea"
-              style="width: 100%;"
-              :rows="2"
-              type="textarea"
-              placeholder="Enter user message"
-              :autosize="{minRows:5}"
-          />
-        </el-col>
-      </el-row>
-      <el-row class="row-bg" justify="end" style="margin: 0 0 1% 0">
-        <el-col :span="4">
+        <el-col :span="1"/>
+        <el-col :span="5">
           <el-button style="width: 100%" size="large" round type="info" @click="clear">
             Clear
           </el-button>
@@ -192,6 +196,7 @@ onMounted(() => {
           </el-button>
         </el-col>
       </el-row>
+      <br/>
       <el-row class="row-bg" justify="start" v-for="(message,index) in messages" :key="index"
               style="border:1px solid #ccc;border-radius: 0">
         <el-col :span="3"
@@ -207,7 +212,7 @@ onMounted(() => {
               <Connection style="color: #529b2e"/>
             </el-icon>
           </div>
-          <em> {{ message.role }} </em>
+          <h5 style="margin: 0"> {{ message.role }} </h5>
         </el-col>
         <el-col :span="21" style="text-align: start" v-html="markdownToHtml(message.content)"/>
       </el-row>
@@ -217,9 +222,6 @@ onMounted(() => {
 </template>
 
 <style scoped lang="stylus">
-.itemTitle {
-  margin: 1% 0 2% 0;
-}
 
 .slider-demo-block {
   max-width: 600px;

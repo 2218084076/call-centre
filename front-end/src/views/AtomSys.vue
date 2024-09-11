@@ -1,6 +1,6 @@
 <script setup>
-import SystemConfig from "../components/SalesHotline/SystemConfig.vue";
-import SalesHotline from "../components/SalesHotline/SalesHotline.vue";
+import AtomSysConfig from "../components/Atom/AtomSysConfig.vue";
+import AtomSys from "../components/Atom/AtomSys.vue";
 import {onMounted, onUnmounted, ref} from "vue";
 
 let activeTab = ref(localStorage.getItem('activeTab') || 'Article Analysis System');
@@ -24,15 +24,16 @@ async function handleTabClick(tab) {
 </script>
 
 <template>
-  <el-tabs tab-position="top" class="demo-tabs" @tab-click="handleTabClick">
-    <el-tab-pane label="Sales Hotline Assistant">
-      <SalesHotline/>
+  <el-tabs tab-position="top" @tab-click="handleTabClick" style="">
+    <el-tab-pane label="Acrostic-Poem">
+      <AtomSys/>
     </el-tab-pane>
-    <el-tab-pane label="SYSTEM">
-      <SystemConfig/>
+    <el-tab-pane label="System">
+      <AtomSysConfig/>
     </el-tab-pane>
   </el-tabs>
 </template>
 
 <style scoped>
+
 </style>

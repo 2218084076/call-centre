@@ -5,7 +5,7 @@ from logging.config import dictConfig
 
 from call_centre.config import settings
 
-loggers = ['httpx', 'httpcore.http11', 'multipart']
+loggers = ['multipart', 'httpcore.http11', 'httpcore.connection']
 
 for logger_name in loggers:
     logging.getLogger(logger_name).setLevel(logging.WARNING)

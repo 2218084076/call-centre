@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 import httpx
@@ -8,7 +7,7 @@ from call_centre.config import settings
 
 class STT:
     """Speech to Text"""
-    STT_URL = settings.STT_URL
+    stt_url = settings.STT_URL
 
     def __init__(self):
         self.logger = logging.getLogger(f'{__name__}.{self.__class__.__name__}')
@@ -31,17 +30,16 @@ class STT:
         try:
             async with httpx.AsyncClient(timeout=120) as client:
                 response = await client.post(
-                    url=self.STT_URL,
+                    url=self.stt_url,
                     files=files,
                     data=data
                 )
             res_data = response.json()
-            content = ''.join([item['text'] for item in res_data['results']])
-            await asyncio.to_thread(self.save_original, content, audio_file.parent)
-            return content
         except Exception as ex:
-            self.logger.warning('Audio transcription failed, error: %s', ex)
-            return f'Audio transcription failed.\n{ex}'
+            print(ex)
+
+        self.logger.info(''.join([item['text'] for item in res_data['results']]).strip())
+        return ''.join([item['text'] for item in res_data['results']]).strip()
 
     def save_original(self, content: str, folder):
         """
@@ -50,6 +48,6 @@ class STT:
         :param folder:
         :return:
         """
-        self.logger.info('save original %s', folder/'original.txt')
+        self.logger.info('save original %s', folder / 'original.txt')
         with open(folder / 'original.txt', 'w', encoding='utf-8') as file:
             file.write(content)

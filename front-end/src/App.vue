@@ -1,9 +1,4 @@
 <template>
-  <!--  <nav>-->
-  <!--    <router-link to="/">Sales Hotline</router-link>-->
-  <!--    |-->
-  <!--    <router-link to="/callCentre">Call Centre</router-link>-->
-  <!--  </nav>-->
   <router-view></router-view>
 </template>
 
@@ -12,7 +7,7 @@
 
 <style>
 body {
-  margin-top: 0;
+  margin: 0;
 }
 
 #app {
@@ -29,13 +24,6 @@ body {
   font-weight: bold;
 }
 
-.el-tabs--top .el-tabs__item.is-top:nth-child(2) {
-  padding: 10%;
-}
-
-.el-tabs--top .el-tabs__item.is-top:last-child {
-  padding: 10%;
-}
 
 .toggle {
   cursor: pointer;
@@ -51,6 +39,7 @@ body {
   --el-upload-dragger-padding-horizontal: 1%;
 }
 
+
 .demo-tabs > .el-tabs__content {
   color: #6b778c;
   height: 100%;
@@ -61,16 +50,11 @@ body {
 }
 
 .el-tabs__item {
-  background-color: aliceblue;
   white-space: pre;
   min-width: max-content;
-  min-height: 5vh;
-  margin: 0 10% 0 0;
-  padding: 0;
 }
 
 .el-tabs__header {
-  height: 5vh;
   margin: 0;
 }
 
@@ -80,10 +64,12 @@ body {
 
 .el-tabs__content {
   height: 100%;
+  margin: 1%;
 }
 
-.el-upload-dragger {
-  border: 1px dashed #79bbff
+
+.el-tabs__nav {
+  margin: 0 0 0 2%;
 }
 
 </style>
